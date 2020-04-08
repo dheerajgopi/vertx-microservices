@@ -103,7 +103,7 @@ public abstract class RestApiVerticle extends BaseMicroserviceVerticle {
      * @param router subrouter
      */
     protected void addSubRouter(final Router router) {
-        apiRouter.mountSubRouter("/api", router);
+        apiRouter.mountSubRouter("/", router);
     }
 
     /**

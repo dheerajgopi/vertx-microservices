@@ -9,28 +9,26 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>microservice-common</artifactId>
+    <artifactId>account-service</artifactId>
+
+    <properties>
+        <main.verticle>org.example.account.AccountVerticle</main.verticle>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
-            <version>${spring.data.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${pg.jdbc.version}</version>
+            <groupId>org.example</groupId>
+            <artifactId>microservice-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <!-- plugin to create a `fat-jar` -->
                 <artifactId>maven-shade-plugin</artifactId>
