@@ -1,4 +1,4 @@
-package org.example.account.dto;
+package org.example.account.user.dto;
 
 import io.vertx.core.json.JsonObject;
 import org.example.account.entity.User;

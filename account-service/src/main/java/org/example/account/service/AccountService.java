@@ -1,11 +1,11 @@
 package org.example.account.service;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import org.example.account.entity.User;
+import org.example.account.user.filter.UserListFilter;
 
 import java.util.List;
 
@@ -30,5 +30,5 @@ public interface AccountService {
      * List all users
      * @param resultHandler handler to be called once all users are fetched
      */
-    void listAllUsers(Handler<AsyncResult<List<User>>> resultHandler);
+    void listAllUsers(UserListFilter filter, Handler<AsyncResult<List<User>>> resultHandler);
 }

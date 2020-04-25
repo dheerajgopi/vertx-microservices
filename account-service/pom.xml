@@ -33,6 +33,10 @@
                 <!-- plugin to create a `fat-jar` -->
                 <artifactId>maven-shade-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>com.mysema.maven</groupId>
+                <artifactId>apt-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
 

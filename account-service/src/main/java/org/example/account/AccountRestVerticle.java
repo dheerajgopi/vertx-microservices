@@ -6,12 +6,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.example.account.dto.UserDto;
+import org.example.account.user.dto.UserDto;
 import org.example.account.entity.User;
+import org.example.account.user.filter.UserListFilter;
 import org.example.account.service.AccountService;
 import org.example.microservicecommon.RestApiVerticle;
 import org.example.microservicecommon.exception.RestApiException;
 import org.example.microservicecommon.http.ApiResponse;
+import org.example.microservicecommon.util.RequestUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,7 +55,10 @@ public class AccountRestVerticle extends RestApiVerticle {
     }
 
     private void listAllUsers(final RoutingContext ctx) {
-        accountService.listAllUsers(res -> {
+        final JsonObject queryParams = RequestUtils.getQueryParams(ctx);
+        final UserListFilter userListFilter = new UserListFilter(queryParams);
+
+        accountService.listAllUsers(userListFilter, res -> {
             if (res.succeeded()) {
                 final List<User> users = res.result();
                 final List<JsonObject> userList = users
