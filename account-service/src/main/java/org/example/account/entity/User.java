@@ -2,6 +2,7 @@ package org.example.account.entity;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import org.example.microservicecommon.http.AbstractDataObject;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @DataObject(generateConverter = true)
 @Entity
 @Table(name = "users")
-public class User {
+public class User extends AbstractDataObject {
 
     /**
      * Identifier.
@@ -66,6 +67,7 @@ public class User {
         UserConverter.fromJson(json, this);
     }
 
+    @Override
     public JsonObject toJson() {
         final JsonObject json = new JsonObject();
         UserConverter.toJson(this, json);

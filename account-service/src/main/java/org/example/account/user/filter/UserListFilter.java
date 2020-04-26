@@ -5,19 +5,24 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.example.account.entity.QUser;
+import org.example.microservicecommon.http.AbstractQueryFilter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wrapper for query filters for user listing API.
  */
 @DataObject(generateConverter = true)
-public class UserListFilter {
+public class UserListFilter extends AbstractQueryFilter {
 
     /**
      * username filter.
      */
-    private String username;
+    private List<String> username = new ArrayList<>();
 
     public UserListFilter(final JsonObject json) {
+        super(json);
         UserListFilterConverter.fromJson(json, this);
     }
 
@@ -28,11 +33,11 @@ public class UserListFilter {
         return json;
     }
 
-    public String getUsername() {
+    public List<String> getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(List<String> username) {
         this.username = username;
     }
 
@@ -43,10 +48,19 @@ public class UserListFilter {
     public BooleanBuilder generateBooleanBuilder() {
         final BooleanBuilder booleanBuilder = new BooleanBuilder();
 
-        if (StringUtils.isNotBlank(username)) {
-            booleanBuilder.and(QUser.user.username.equalsIgnoreCase(username));
+        if (username != null && !username.isEmpty()) {
+            username.forEach(each -> {
+                if (StringUtils.isNotBlank(each)) {
+                    booleanBuilder.or(QUser.user.username.equalsIgnoreCase(each));
+                }
+            });
         }
 
         return booleanBuilder;
+    }
+
+    @Override
+    public void validate() {
+
     }
 }

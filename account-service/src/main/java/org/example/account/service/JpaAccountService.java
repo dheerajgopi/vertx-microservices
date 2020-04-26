@@ -4,11 +4,12 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.example.account.entity.User;
+import org.example.account.user.dataobject.page.UserPage;
 import org.example.account.user.filter.UserListFilter;
 import org.example.account.user.UserService;
+import org.example.account.user.filter.UserListPageAndSort;
 import org.springframework.context.ApplicationContext;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public class JpaAccountService implements AccountService {
 
@@ -22,11 +23,19 @@ public class JpaAccountService implements AccountService {
     }
 
     @Override
-    public void listAllUsers(final UserListFilter filter, final Handler<AsyncResult<List<User>>> resultHandler) {
-        vertx.<List<User>>executeBlocking(promise -> {
-            final List<User> users = userService.fetchAll(filter.generateBooleanBuilder());
-            promise.complete(users);
+    public void listAllUsers(
+            final UserListFilter filter,
+            final UserListPageAndSort pageAndSort,
+            final Handler<AsyncResult<UserPage>> resultHandler) {
+        vertx.<UserPage>executeBlocking(promise -> {
+            pageAndSort.validateSort();
+
+            final Page<User> users = userService.fetchAll(
+                    filter.generateBooleanBuilder(),
+                    pageAndSort.getJpaPageable()
+            );
+
+            promise.complete(new UserPage(users));
         }, false, resultHandler);
     }
-
 }

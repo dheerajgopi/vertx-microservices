@@ -4,10 +4,9 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import org.example.account.entity.User;
+import org.example.account.user.dataobject.page.UserPage;
 import org.example.account.user.filter.UserListFilter;
-
-import java.util.List;
+import org.example.account.user.filter.UserListPageAndSort;
 
 /**
  * Event bus service for managing users.
@@ -28,7 +27,13 @@ public interface AccountService {
 
     /**
      * List all users
+     * @param filter query filters
+     * @param pageAndSort pagination and sort
      * @param resultHandler handler to be called once all users are fetched
      */
-    void listAllUsers(UserListFilter filter, Handler<AsyncResult<List<User>>> resultHandler);
+    void listAllUsers(
+            UserListFilter filter,
+            UserListPageAndSort pageAndSort,
+            Handler<AsyncResult<UserPage>> resultHandler
+    );
 }
