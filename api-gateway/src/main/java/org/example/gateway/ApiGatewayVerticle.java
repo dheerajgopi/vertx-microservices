@@ -1,13 +1,13 @@
 package org.example.gateway;
 
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.servicediscovery.Record;
 import io.vertx.servicediscovery.ServiceDiscovery;
@@ -23,6 +23,8 @@ import java.util.Optional;
 public class ApiGatewayVerticle extends RestApiVerticle {
 
     private static final int DEFAULT_PORT = 8787;
+
+    private static final String apiRoutePrefix = "api";
 
     private static final Logger logger = LoggerFactory.getLogger(ApiGatewayVerticle.class);
 
@@ -81,15 +83,24 @@ public class ApiGatewayVerticle extends RestApiVerticle {
 
                     final String[] splitRequestPath = requestPath.substring(1).split("/");
 
-                    if (splitRequestPath.length <= 1) {
+                    if (splitRequestPath.length <= 2) {
                         this.routeNotFoundHandler(context);
                         promise.complete();
 
                         return;
                     }
 
-                    final String apiName = splitRequestPath[0];
-                    final String relativePath = requestPath.substring(apiName.length() + 1);
+                    final String apiPrefix = splitRequestPath[0];
+
+                    if (!apiPrefix.equals(apiRoutePrefix)) {
+                        this.routeNotFoundHandler(context);
+                        promise.complete();
+
+                        return;
+                    }
+
+                    final String apiName = splitRequestPath[1];
+                    final String relativePath = requestPath.substring(apiPrefix.length() + apiName.length() + 2);
 
                     Optional<Record> serviceRecord = records.stream()
                             .filter(record -> record.getMetadata().getString("api.name") != null)
@@ -124,28 +135,30 @@ public class ApiGatewayVerticle extends RestApiVerticle {
     private void doDispatch(
             final RoutingContext context,
             final String path,
-            final WebClient httpClient,
+            final HttpClient httpClient,
             final Promise<Object> cbPromise
     ) {
-        httpClient.request(context.request().method(), path)
-                .as(BodyCodec.jsonObject())
-                .send(res -> {
-                    if (res.succeeded()) {
-                        if (res.result().statusCode() >= 500) {
-                            cbPromise.fail(res.result().bodyAsString());
-                        } else {
-                            context
-                                    .response()
-                                    .setStatusCode(res.result().statusCode())
-                                    .end(res.result().body().encode());
-                            cbPromise.complete();
-                        }
-                    } else {
-                        cbPromise.fail(res.cause());
-                    }
+        final HttpClientRequest toRequest = httpClient.request(context.request().method(), path, res -> {
+            res.bodyHandler(body -> {
+                if (res.statusCode() >= 500) {
+                    cbPromise.fail(res.toString());
+                } else {
+                    context
+                            .response()
+                            .setStatusCode(res.statusCode())
+                            .end(body);
+                    cbPromise.complete();
+                }
 
-                    ServiceDiscovery.releaseServiceObject(serviceDiscovery, httpClient);
-                });
+                ServiceDiscovery.releaseServiceObject(serviceDiscovery, httpClient);
+            });
+        });
+
+        if (context.getBody() == null) {
+            toRequest.end();
+        } else {
+            toRequest.end(context.getBody());
+        }
     }
 
     /**
@@ -155,7 +168,7 @@ public class ApiGatewayVerticle extends RestApiVerticle {
     private Promise<List<Record>> getAllHttpEndpoints() {
         final Promise<List<Record>> promise = Promise.promise();
 
-        serviceDiscovery.getRecords(record -> record.getName().equals(HttpEndpoint.TYPE), res -> {
+        serviceDiscovery.getRecords(record -> record.getType().equals(HttpEndpoint.TYPE), res -> {
             if (res.succeeded()) {
                 promise.complete(res.result());
             } else {

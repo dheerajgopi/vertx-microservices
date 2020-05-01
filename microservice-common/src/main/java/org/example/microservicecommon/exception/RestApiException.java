@@ -39,6 +39,10 @@ public class RestApiException extends RuntimeException {
         return httpStatus;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     /**
      * Returns a <code>JsonObject</code> containing HTTP status and message.
      * @return {@link JsonObject}

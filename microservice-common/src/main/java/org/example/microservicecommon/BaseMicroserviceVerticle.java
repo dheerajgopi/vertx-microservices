@@ -12,6 +12,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.servicediscovery.Record;
 import io.vertx.servicediscovery.ServiceDiscovery;
 import io.vertx.servicediscovery.ServiceDiscoveryOptions;
+import io.vertx.servicediscovery.types.EventBusService;
 import io.vertx.servicediscovery.types.HttpEndpoint;
 
 import java.util.ArrayList;
@@ -74,6 +75,26 @@ public abstract class BaseMicroserviceVerticle extends AbstractVerticle {
     protected Promise<Void> publishApiGateway(final String host, final int port) {
         final Record record = HttpEndpoint.createRecord("api-gateway", host, port, null)
                 .setType("api-gateway");
+
+        return publish(record);
+    }
+
+    /**
+     * Publish service record for event bus service.
+     * @param name service name
+     * @param address service address
+     * @param serviceClass service Class type
+     * @return a promise
+     */
+    protected Promise<Void> publishEventBusService(final String name, final String address, final Class serviceClass) {
+        final Record record = EventBusService.createRecord(name, address, serviceClass);
+
+        return publish(record);
+    }
+
+    protected Promise<Void> publishHttpEndpoint(final String name, final String host, final int port) {
+        final Record record = HttpEndpoint.createRecord(name, host, port, "/",
+                new JsonObject().put("api.name", config().getString("api.name", "")));
 
         return publish(record);
     }
