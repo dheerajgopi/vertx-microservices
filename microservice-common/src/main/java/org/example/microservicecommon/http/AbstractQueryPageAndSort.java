@@ -178,6 +178,10 @@ public abstract class AbstractQueryPageAndSort implements QueryPagination, Query
         return sortParams;
     }
 
+    /**
+     * Returns spring {@link Pageable} corresponding to the sort parameters provided.
+     * @return {@link Pageable} object
+     */
     public Pageable getJpaPageable() {
         final List<org.springframework.data.domain.Sort.Order> jpaSorts = new ArrayList<>();
 
