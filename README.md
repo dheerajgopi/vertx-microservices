@@ -6,6 +6,16 @@
 - Maven 3.3.9
 - Postgres 12.2
 
+## Run unit tests
+
+### Project level
+`mvn test`
+
+### Module level
+`mvn test -pl :module-artifact-name -am`
+
+Eg: `mvn test -pl :account-service -am`
+
 ## How to run the application
 
 ### Compile
