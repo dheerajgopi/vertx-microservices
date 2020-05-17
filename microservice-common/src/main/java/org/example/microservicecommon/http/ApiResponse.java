@@ -7,7 +7,7 @@ import org.example.microservicecommon.exception.RestApiException;
 /**
  * Container for all REST API responses.
  */
-public class ApiResponse implements JsonResponse {
+public class ApiResponse implements JsonData {
 
     /**
      * HTTP status.

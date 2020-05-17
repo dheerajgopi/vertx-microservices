@@ -4,6 +4,8 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import org.example.account.user.dataobject.dto.CreateUserReqDto;
+import org.example.account.user.dataobject.dto.CreateUserResDto;
 import org.example.account.user.dataobject.page.UserPage;
 import org.example.account.user.filter.UserListFilter;
 import org.example.account.user.filter.UserListPageAndSort;
@@ -36,4 +38,11 @@ public interface AccountService {
             UserListPageAndSort pageAndSort,
             Handler<AsyncResult<UserPage>> resultHandler
     );
+
+    /**
+     * Create an user.
+     * @param newUserDto request body containing user details
+     * @param resultHandler handler to be called once all user is created
+     */
+    void createUser(CreateUserReqDto newUserDto, Handler<AsyncResult<CreateUserResDto>> resultHandler);
 }

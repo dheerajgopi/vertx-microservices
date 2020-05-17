@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * Wrapper for paginated API response.
  */
-public class PagedResponse implements JsonResponse {
+public class PagedResponse implements JsonData {
 
     /**
      * key for list payload.
@@ -38,13 +38,13 @@ public class PagedResponse implements JsonResponse {
 
     public PagedResponse(
             final String key,
-            final List<? extends JsonResponse> list,
+            final List<? extends JsonData> list,
             final Integer page,
             final Integer size,
             final Long totalElements
     ) {
         this.key = key;
-        this.items = list.stream().map(JsonResponse::toJson).collect(Collectors.toList());
+        this.items = list.stream().map(JsonData::toJson).collect(Collectors.toList());
         this.page = page;
         this.size = size;
         this.totalElements = totalElements;

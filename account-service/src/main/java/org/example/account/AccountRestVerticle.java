@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.example.account.user.dataobject.dto.CreateUserReqDto;
+import org.example.account.user.dataobject.dto.CreateUserResDto;
 import org.example.account.user.dataobject.dto.UserDto;
 import org.example.account.user.dataobject.page.UserPage;
 import org.example.account.user.filter.UserListFilter;
@@ -46,6 +48,7 @@ public class AccountRestVerticle extends RestApiVerticle {
         final Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
         router.get("/users").handler(this::listAllUsers);
+        router.post("/users").handler(this::createUser);
         this.addSubRouter(router);
 
         final String host = config().getString("account.http.address", "localhost");
@@ -95,6 +98,28 @@ public class AccountRestVerticle extends RestApiVerticle {
                 );
 
                 ctx.response().end(response.toJson().encode());
+            } else {
+                final RestApiException restException = new RestApiException(res.cause());
+
+                ctx.fail(restException.getHttpStatus(), restException);
+            }
+        });
+    }
+
+    private void createUser(final RoutingContext ctx) {
+        final JsonObject reqBody = ctx.getBodyAsJson();
+        final CreateUserReqDto createUserReqDto = new CreateUserReqDto(reqBody);
+
+        accountService.createUser(createUserReqDto, res -> {
+            if (res.succeeded()) {
+                final CreateUserResDto result = res.result();
+
+                final ApiResponse response = new ApiResponse(
+                        201,
+                        result.toJson()
+                );
+
+                ctx.response().setStatusCode(201).end(response.toJson().encode());
             } else {
                 final RestApiException restException = new RestApiException(res.cause());
 

@@ -18,8 +18,14 @@ Eg: `mvn test -pl :account-service -am`
 
 ## How to run the application
 
+### DB setup
+Install postgresql and setup default schema for each DB user names.
+
+### Install common library
+`mvn clean install -pl microservice-common -am`
+
 ### Compile
- `mvn clean package`
+`mvn clean package`
 
 This will create jar files in each module (gateway, account etc.)
 
