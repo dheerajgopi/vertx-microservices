@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * Interface for objects which can be converted to a JSON.
  */
-public interface JsonResponse {
+public interface JsonData {
 
     /**
      * Converts to {@link JsonObject}

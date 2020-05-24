@@ -1,13 +1,15 @@
 package org.example.account.user.dataobject.dto;
 
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import org.example.account.entity.User;
-import org.example.microservicecommon.http.JsonResponse;
+import org.example.microservicecommon.http.JsonData;
 
 /**
  * Container for user payload in REST API response.
  */
-public class UserDto implements JsonResponse {
+@DataObject(generateConverter = true)
+public class UserDto implements JsonData {
 
     private Long id;
 
@@ -22,6 +24,10 @@ public class UserDto implements JsonResponse {
         this.username = user.getUsername();
         this.name = user.getName();
         this.isActive = user.getIsActive();
+    }
+
+    public UserDto(final JsonObject json) {
+        UserDtoConverter.fromJson(json, this);
     }
 
     public Long getId() {
@@ -57,6 +63,9 @@ public class UserDto implements JsonResponse {
     }
 
     public JsonObject toJson() {
-        return JsonObject.mapFrom(this);
+        final JsonObject json = new JsonObject();
+        UserDtoConverter.toJson(this, json);
+
+        return json;
     }
 }

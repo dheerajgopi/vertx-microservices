@@ -8,11 +8,12 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.example.account.entity.User;
 import org.example.account.user.UserService;
-import org.example.account.user.dataobject.page.UserPage;
+import org.example.account.user.dataobject.dto.CreateUserReqDto;
 import org.example.account.user.filter.UserListFilter;
 import org.example.account.user.filter.UserListPageAndSort;
+import org.example.microservicecommon.exception.ConflictException;
 import org.example.microservicecommon.exception.InvalidSortFieldException;
-import org.example.microservicecommon.util.RequestUtils;
+import org.example.microservicecommon.exception.MissingOrEmptyKeyException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,6 +81,82 @@ class JpaAccountServiceTest {
                 new UserListPageAndSort(reqParams),
                 testContext.failing(res -> testContext.verify(() -> {
                     assertTrue(res instanceof InvalidSortFieldException);
+
+                    testContext.completeNow();
+                }))
+        );
+    }
+
+    @Test
+    void testCreateUserForSuccess(final VertxTestContext testContext) {
+        final JsonObject reqBody = new JsonObject();
+        final JsonObject userData = new JsonObject();
+        userData.put("username", "test");
+        userData.put("name", "test");
+        userData.put("password", "test");
+        reqBody.put("user", userData);
+
+        final CreateUserReqDto reqBodyDto = new CreateUserReqDto(reqBody);
+
+        final User user = new User();
+        user.setId(1L);
+        user.setName(reqBodyDto.getUser().getName());
+        user.setUsername(reqBodyDto.getUser().getUsername());
+        user.setPassword("pswd");
+
+        Mockito.when(userService.createUser(Mockito.any(User.class)))
+                .thenReturn(user);
+
+        jpaAccountService.createUser(
+                reqBodyDto,
+                testContext.succeeding(res -> testContext.verify(() -> {
+                    assertEquals(user.getName(), res.getUser().getName());
+                    assertEquals(user.getUsername(), res.getUser().getUsername());
+
+                    testContext.completeNow();
+                }))
+        );
+    }
+
+    @Test
+    void testCreateUserForValidationError(final VertxTestContext testContext) {
+        final JsonObject reqBody = new JsonObject();
+        final JsonObject userData = new JsonObject();
+        userData.put("username", "");
+        userData.put("name", "test");
+        userData.put("password", "test");
+        reqBody.put("user", userData);
+
+        final CreateUserReqDto reqBodyDto = new CreateUserReqDto(reqBody);
+
+        jpaAccountService.createUser(
+                reqBodyDto,
+                testContext.failing(ex -> testContext.verify(() -> {
+                    assertTrue(ex instanceof MissingOrEmptyKeyException);
+                    Mockito.verify(userService, Mockito.times(0)).createUser(Mockito.any(User.class));
+
+                    testContext.completeNow();
+                }))
+        );
+    }
+
+    @Test
+    void testCreateUserForConflictException(final VertxTestContext testContext) {
+        final JsonObject reqBody = new JsonObject();
+        final JsonObject userData = new JsonObject();
+        userData.put("username", "test");
+        userData.put("name", "test");
+        userData.put("password", "test");
+        reqBody.put("user", userData);
+
+        final CreateUserReqDto reqBodyDto = new CreateUserReqDto(reqBody);
+
+        Mockito.when(userService.createUser(Mockito.any(User.class))).thenThrow(ConflictException.class);
+
+        jpaAccountService.createUser(
+                reqBodyDto,
+                testContext.failing(ex -> testContext.verify(() -> {
+                    assertTrue(ex instanceof ConflictException);
 
                     testContext.completeNow();
                 }))

@@ -2,13 +2,17 @@ package org.example.account.entity;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import org.example.account.user.dataobject.dto.NewUserDto;
 import org.example.microservicecommon.http.AbstractDataObject;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -61,6 +65,12 @@ public class User extends AbstractDataObject {
     private LocalDateTime updatedAt;
 
     public User() {
+    }
+
+    public User(final NewUserDto userDto) {
+        this.username = userDto.getUsername();
+        this.name = userDto.getName();
+        this.password = BCrypt.hashpw(userDto.getPassword(), BCrypt.gensalt());
     }
 
     public User(final JsonObject json) {
@@ -130,4 +140,21 @@ public class User extends AbstractDataObject {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    @PrePersist
+    public void onPersist() {
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+
+        final LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

@@ -1,4 +1,4 @@
-CREATE TABLE userdb.users (
+CREATE TABLE users (
     id bigserial PRIMARY KEY,
     username VARCHAR (255) UNIQUE NOT NULL,
     name VARCHAR (512) NOT NULL,

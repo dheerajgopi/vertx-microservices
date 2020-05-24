@@ -10,9 +10,12 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.example.account.entity.User;
 import org.example.account.service.AccountService;
+import org.example.account.user.dataobject.dto.CreateUserReqDto;
+import org.example.account.user.dataobject.dto.CreateUserResDto;
 import org.example.account.user.dataobject.page.UserPage;
 import org.example.account.user.filter.UserListFilter;
 import org.example.account.user.filter.UserListPageAndSort;
+import org.example.microservicecommon.exception.ConflictException;
 import org.example.microservicecommon.exception.InvalidSortFieldException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,6 +107,48 @@ public class AccountRestVerticleTest {
         })));
     }
 
+    @Test
+    void testCreateUserForServiceException(final Vertx vertx, final VertxTestContext testContext) {
+        final WebClient client = WebClient.create(vertx);
+        accountService.setException(new ConflictException("username", "error"));
+
+        client
+                .post(port, "localhost", "/users")
+                .sendJsonObject(new JsonObject(), testContext.succeeding(res -> testContext.verify(() -> {
+                    final JsonObject actual = new JsonObject(res.body());
+
+                    assertEquals(409, res.statusCode());
+                    assertEquals(409, actual.getInteger("status"));
+                    assertNull(actual.getJsonObject("data"));
+                    assertNotNull(actual.getJsonObject("error").getString("message"));
+
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void testCreateUserForSuccess(final Vertx vertx, final VertxTestContext testContext) {
+        final WebClient client = WebClient.create(vertx);
+        final JsonObject userJson = new JsonObject();
+        userJson.put("id", 1);
+        userJson.put("username", "test");
+        final CreateUserResDto result = new CreateUserResDto(new JsonObject().put("user", userJson));
+        accountService.setUserCreateResult(result);
+
+        client
+                .post(port, "localhost", "/users")
+                .sendJsonObject(new JsonObject(), testContext.succeeding(res -> testContext.verify(() -> {
+                    final JsonObject actual = new JsonObject(res.body());
+
+                    assertEquals(201, res.statusCode());
+                    assertEquals(201, actual.getInteger("status"));
+                    assertNotNull(actual.getJsonObject("data"));
+                    assertEquals(actual.getJsonObject("data").getJsonObject("user").getInteger("id"), 1);
+
+                    testContext.completeNow();
+                })));
+    }
+
     /**
      * Mock service implementing {@link AccountService}.
      */
@@ -114,6 +159,8 @@ public class AccountRestVerticleTest {
         private RuntimeException exception;
 
         private UserPage userListResult;
+
+        private CreateUserResDto userCreateResult;
 
         public MockAccountService(final Vertx vertx) {
             this.vertx = vertx;
@@ -133,6 +180,10 @@ public class AccountRestVerticleTest {
             this.userListResult = userPage;
         }
 
+        public void setUserCreateResult(final CreateUserResDto userCreateResult) {
+            this.userCreateResult = userCreateResult;
+        }
+
         /**
          * Throw exception if <code>exception</code> field is not null,
          * else return <code>userListResult</code>.
@@ -149,6 +200,17 @@ public class AccountRestVerticleTest {
                 }
 
                 promise.complete(userListResult);
+            }, true, resultHandler);
+        }
+
+        @Override
+        public void createUser(CreateUserReqDto newUserDto, Handler<AsyncResult<CreateUserResDto>> resultHandler) {
+            vertx.<CreateUserResDto>executeBlocking(promise -> {
+                if (this.exception != null) {
+                    throw exception;
+                }
+
+                promise.complete(userCreateResult);
             }, true, resultHandler);
         }
     }

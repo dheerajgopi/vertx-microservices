@@ -21,6 +21,13 @@
             <artifactId>microservice-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- bcrypt -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>

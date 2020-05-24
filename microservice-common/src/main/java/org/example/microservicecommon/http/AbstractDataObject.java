@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * Abstract class for data objects to be transferred through eventbus.
  */
-public abstract class AbstractDataObject implements JsonResponse {
+public abstract class AbstractDataObject implements JsonData {
 
     protected AbstractDataObject() {
 
